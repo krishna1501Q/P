@@ -2,60 +2,154 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Simple Game</title>
+<title>Flappy Bird</title>
 <style>
     body {
         margin: 0;
-        height: 100vh;
-        background: black;
-        color: white;
-        font-family: Arial, sans-serif;
+        background: #70c5ce;
         overflow: hidden;
+        font-family: Arial, sans-serif;
+    }
+
+    #game {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+    }
+
+    #bird {
+        width: 40px;
+        height: 40px;
+        background: yellow;
+        border-radius: 50%;
+        position: absolute;
+        left: 20%;
+        top: 50%;
+    }
+
+    .pipe {
+        position: absolute;
+        width: 60px;
+        background: green;
     }
 
     #score {
         position: fixed;
         top: 20px;
-        left: 20px;
-        font-size: 24px;
-    }
-
-    #box {
-        width: 80px;
-        height: 80px;
-        background: white;
-        position: absolute;
-        cursor: pointer;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 32px;
+        font-weight: bold;
+        color: white;
     }
 </style>
 </head>
 <body>
 
-<div id="score">Score: 0</div>
-<div id="box"></div>
+<div id="game">
+    <div id="score">0</div>
+    <div id="bird"></div>
+</div>
 
 <script>
+    const bird = document.getElementById("bird");
+    const game = document.getElementById("game");
+    const scoreEl = document.getElementById("score");
+
+    let birdY = window.innerHeight / 2;
+    let gravity = 2;
+    let velocity = 0;
     let score = 0;
-    const box = document.getElementById("box");
+    let gameOver = false;
 
-    function moveBox() {
-        const maxX = window.innerWidth - 80;
-        const maxY = window.innerHeight - 80;
-
-        const x = Math.random() * maxX;
-        const y = Math.random() * maxY;
-
-        box.style.left = x + "px";
-        box.style.top = y + "px";
+    function flap() {
+        if (!gameOver) velocity = -15;
     }
 
-    box.addEventListener("click", () => {
-        score++;
-        document.getElementById("score").innerText = "Score: " + score;
-        moveBox();
-    });
+    document.addEventListener("click", flap);
+    document.addEventListener("touchstart", flap);
 
-    moveBox();
+    function createPipe() {
+        if (gameOver) return;
+
+        const gap = 180;
+        const pipeTopHeight = Math.random() * (window.innerHeight - gap - 200) + 50;
+
+        const pipeTop = document.createElement("div");
+        pipeTop.className = "pipe";
+        pipeTop.style.height = pipeTopHeight + "px";
+        pipeTop.style.top = "0";
+        pipeTop.style.left = window.innerWidth + "px";
+
+        const pipeBottom = document.createElement("div");
+        pipeBottom.className = "pipe";
+        pipeBottom.style.height = (window.innerHeight - pipeTopHeight - gap) + "px";
+        pipeBottom.style.bottom = "0";
+        pipeBottom.style.left = window.innerWidth + "px";
+
+        game.appendChild(pipeTop);
+        game.appendChild(pipeBottom);
+
+        let pipeX = window.innerWidth;
+
+        const movePipe = setInterval(() => {
+            if (gameOver) {
+                clearInterval(movePipe);
+                return;
+            }
+
+            pipeX -= 4;
+            pipeTop.style.left = pipeX + "px";
+            pipeBottom.style.left = pipeX + "px";
+
+            // collision
+            const birdRect = bird.getBoundingClientRect();
+            const topRect = pipeTop.getBoundingClientRect();
+            const bottomRect = pipeBottom.getBoundingClientRect();
+
+            if (
+                birdRect.right > topRect.left &&
+                birdRect.left < topRect.right &&
+                (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
+            ) {
+                endGame();
+            }
+
+            if (pipeX === 200) {
+                score++;
+                scoreEl.innerText = score;
+            }
+
+            if (pipeX < -60) {
+                pipeTop.remove();
+                pipeBottom.remove();
+                clearInterval(movePipe);
+            }
+        }, 20);
+    }
+
+    function endGame() {
+        gameOver = true;
+        alert("Game Over! Score: " + score);
+        location.reload();
+    }
+
+    function gameLoop() {
+        if (gameOver) return;
+
+        velocity += gravity;
+        birdY += velocity;
+        bird.style.top = birdY + "px";
+
+        if (birdY > window.innerHeight || birdY < 0) {
+            endGame();
+        }
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    setInterval(createPipe, 2000);
+    gameLoop();
 </script>
 
 </body>
