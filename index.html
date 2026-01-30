@@ -2,154 +2,96 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Flappy Bird</title>
+<title>Welcome</title>
+
 <style>
     body {
         margin: 0;
-        background: #70c5ce;
+        background: black;
         overflow: hidden;
         font-family: Arial, sans-serif;
     }
 
-    #game {
-        position: relative;
-        width: 100vw;
+    #container {
         height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
-    #bird {
-        width: 40px;
-        height: 40px;
-        background: yellow;
-        border-radius: 50%;
-        position: absolute;
-        left: 20%;
-        top: 50%;
+    img {
+        max-width: 90%;
+        max-height: 70vh;
+        object-fit: contain;
+        margin-bottom: 20px;
     }
 
-    .pipe {
-        position: absolute;
-        width: 60px;
-        background: green;
-    }
-
-    #score {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 32px;
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
         font-weight: bold;
+        border: none;
+        border-radius: 30px;
+        background: orange;
         color: white;
+        cursor: pointer;
+    }
+
+    .heart {
+        position: fixed;
+        font-size: 24px;
+        animation: float 3s linear forwards;
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-200px);
+            opacity: 0;
+        }
     }
 </style>
 </head>
 <body>
 
-<div id="game">
-    <div id="score">0</div>
-    <div id="bird"></div>
+<div id="container">
+    <img src="image.jpg" alt="Main Image">
+
+    <button onclick="createHearts()">
+        IF YOU ARE BJP LOVER ❤️
+    </button>
 </div>
 
+<audio id="audio">
+    <source src="audio.mp3" type="audio/mpeg">
+</audio>
+
 <script>
-    const bird = document.getElementById("bird");
-    const game = document.getElementById("game");
-    const scoreEl = document.getElementById("score");
+    // play audio after first tap (mobile rule)
+    document.body.addEventListener("click", () => {
+        document.getElementById("audio").play();
+    }, { once: true });
 
-    let birdY = window.innerHeight / 2;
-    let gravity = 2;
-    let velocity = 0;
-    let score = 0;
-    let gameOver = false;
+    function createHearts() {
+        for (let i = 0; i < 20; i++) {
+            const heart = document.createElement("div");
+            heart.className = "heart";
+            heart.innerHTML = "❤️";
 
-    function flap() {
-        if (!gameOver) velocity = -15;
-    }
+            heart.style.left = Math.random() * window.innerWidth + "px";
+            heart.style.bottom = "0px";
 
-    document.addEventListener("click", flap);
-    document.addEventListener("touchstart", flap);
+            document.body.appendChild(heart);
 
-    function createPipe() {
-        if (gameOver) return;
-
-        const gap = 180;
-        const pipeTopHeight = Math.random() * (window.innerHeight - gap - 200) + 50;
-
-        const pipeTop = document.createElement("div");
-        pipeTop.className = "pipe";
-        pipeTop.style.height = pipeTopHeight + "px";
-        pipeTop.style.top = "0";
-        pipeTop.style.left = window.innerWidth + "px";
-
-        const pipeBottom = document.createElement("div");
-        pipeBottom.className = "pipe";
-        pipeBottom.style.height = (window.innerHeight - pipeTopHeight - gap) + "px";
-        pipeBottom.style.bottom = "0";
-        pipeBottom.style.left = window.innerWidth + "px";
-
-        game.appendChild(pipeTop);
-        game.appendChild(pipeBottom);
-
-        let pipeX = window.innerWidth;
-
-        const movePipe = setInterval(() => {
-            if (gameOver) {
-                clearInterval(movePipe);
-                return;
-            }
-
-            pipeX -= 4;
-            pipeTop.style.left = pipeX + "px";
-            pipeBottom.style.left = pipeX + "px";
-
-            // collision
-            const birdRect = bird.getBoundingClientRect();
-            const topRect = pipeTop.getBoundingClientRect();
-            const bottomRect = pipeBottom.getBoundingClientRect();
-
-            if (
-                birdRect.right > topRect.left &&
-                birdRect.left < topRect.right &&
-                (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
-            ) {
-                endGame();
-            }
-
-            if (pipeX === 200) {
-                score++;
-                scoreEl.innerText = score;
-            }
-
-            if (pipeX < -60) {
-                pipeTop.remove();
-                pipeBottom.remove();
-                clearInterval(movePipe);
-            }
-        }, 20);
-    }
-
-    function endGame() {
-        gameOver = true;
-        alert("Game Over! Score: " + score);
-        location.reload();
-    }
-
-    function gameLoop() {
-        if (gameOver) return;
-
-        velocity += gravity;
-        birdY += velocity;
-        bird.style.top = birdY + "px";
-
-        if (birdY > window.innerHeight || birdY < 0) {
-            endGame();
+            setTimeout(() => {
+                heart.remove();
+            }, 3000);
         }
-
-        requestAnimationFrame(gameLoop);
     }
-
-    setInterval(createPipe, 2000);
-    gameLoop();
 </script>
 
 </body>
